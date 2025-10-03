@@ -1,6 +1,6 @@
 // src/components/layout/Sidebar.tsx
 import { NavLink } from "react-router-dom";
-import { Briefcase, Users, ClipboardList } from "lucide-react";
+import { Briefcase, Users, ClipboardList, LayoutDashboard } from "lucide-react"; // <-- Import LayoutDashboard icon
 
 export function Sidebar() {
   return (
@@ -10,9 +10,24 @@ export function Sidebar() {
       </div>
       <nav className="px-4">
         <ul>
+          {/* Dashboard Link */}
           <li>
             <NavLink
-              to="/"
+              to="/app"
+              end // Use 'end' to prevent it from matching child routes
+              className={({ isActive }) =>
+                `flex items-center p-2 rounded-md ${
+                  isActive ? "bg-accent text-accent-foreground" : ""
+                }`
+              }
+            >
+              <LayoutDashboard className="mr-3 h-5 w-5" />
+              Dashboard
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/app/jobs" // <-- Update paths to match nesting
               className={({ isActive }) =>
                 `flex items-center p-2 rounded-md ${
                   isActive ? "bg-accent text-accent-foreground" : ""
@@ -25,7 +40,7 @@ export function Sidebar() {
           </li>
           <li>
             <NavLink
-              to="/candidates"
+              to="/app/candidates" // <-- Update paths to match nesting
               className={({ isActive }) =>
                 `flex items-center p-2 rounded-md ${
                   isActive ? "bg-accent text-accent-foreground" : ""
@@ -38,7 +53,7 @@ export function Sidebar() {
           </li>
           <li>
             <NavLink
-              to="/assessments"
+              to="/app/assessments" // <-- Update paths to match nesting
               className={({ isActive }) =>
                 `flex items-center p-2 rounded-md ${
                   isActive ? "bg-accent text-accent-foreground" : ""
