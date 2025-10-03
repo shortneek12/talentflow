@@ -17,7 +17,7 @@ import {
 import { AssessmentBuilder } from '@/features/assessments/AssessmentBuilder';
 
 async function fetchActiveJobs(): Promise<IJob[]> {
-  const res = await fetch('/jobs');
+  const res = await fetch('/api/jobs');
   if (!res.ok) throw new Error('Failed to fetch jobs');
   const allJobs: IJob[] = await res.json();
   return allJobs.filter(job => job.status === 'active');
