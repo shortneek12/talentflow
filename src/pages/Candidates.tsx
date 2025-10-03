@@ -1,44 +1,56 @@
 // src/pages/Candidates.tsx
-import { useQuery } from "@tanstack/react-query";
-import { CandidatesList } from "@/features/candidates/CandidatesList";
-import { KanbanBoard } from "@/features/candidates/KanbanBoard";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { LayoutGrid, List } from "lucide-react";
-import type { ICandidate } from "@/types";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { CandidatesList } from '@/features/candidates/CandidatesList';
+import { KanbanBoard } from '@/features/candidates/KanbanBoard';
+import { Box, Typography, ToggleButton, ToggleButtonGroup, CircularProgress, Alert } from '@mui/material';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
+import type { ICandidate } from '@/types';
 
 async function fetchCandidates(): Promise<ICandidate[]> {
-  const res = await fetch("/candidates");
-  if (!res.ok) throw new Error("Failed to fetch candidates");
-  return res.json();
+  const response = await fetch('/candidates');
+  if (!response.ok) {
+    throw new Error('Failed to fetch candidates');
+  }
+  return response.json();
 }
 
 export function Candidates() {
   const [view, setView] = useState<'list' | 'board'>('list');
-  const { data: candidates, isLoading, error } = useQuery({ 
+  const { data: candidates, isLoading, error } = useQuery<ICandidate[], Error>({ 
     queryKey: ['candidates'], 
     queryFn: fetchCandidates 
   });
 
+  const handleViewChange = (_: React.MouseEvent<HTMLElement>, newView: 'list' | 'board' | null) => {
+    if (newView !== null) {
+      setView(newView);
+    }
+  };
+
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Candidates</h1>
-        <div>
-          <Button variant="outline" size="icon" onClick={() => setView('list')} className={view === 'list' ? 'bg-accent' : ''}>
-            <List className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => setView('board')} className={view === 'board' ? 'bg-accent' : ''}>
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1" fontWeight="bold">
+          Candidates
+        </Typography>
+        <ToggleButtonGroup value={view} exclusive onChange={handleViewChange}>
+          <ToggleButton value="list" aria-label="list view">
+            <ViewListIcon />
+          </ToggleButton>
+          <ToggleButton value="board" aria-label="kanban board view">
+            <ViewKanbanIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      {isLoading && <Box sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>}
+      {error && <Alert severity="error">{(error as Error).message}</Alert>}
       
-      {isLoading && <p>Loading candidates...</p>}
-      {error && <p className="text-red-500">Error: {error.message}</p>}
-      
-      {candidates && view === 'list' && <CandidatesList candidates={candidates} />}
-      {candidates && view === 'board' && <KanbanBoard candidates={candidates} />}
-    </div>
+      {candidates && (
+        view === 'list' ? <CandidatesList candidates={candidates} /> : <KanbanBoard candidates={candidates} />
+      )}
+    </Box>
   );
 }

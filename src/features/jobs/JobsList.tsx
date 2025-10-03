@@ -4,9 +4,9 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-p
 import { JobCard } from "./JobCard";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Box } from "@mui/material";
 
 async function reorderJobsAPI(variables: { jobId: number; from: number; to: number }) {
-  // Simulate API call
   const response = await fetch(`/jobs/${variables.jobId}/reorder`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -26,26 +26,25 @@ export function JobsList({ jobs }: { jobs: IJob[] }) {
     onMutate: async (newOrder: { jobId: number; from: number; to: number }) => {
       await queryClient.cancelQueries({ queryKey: ['jobs'] });
       const previousJobs = queryClient.getQueryData<IJob[]>(['jobs']);
-      
-      // Optimistically update the UI
+
+      // Optimistically update
       queryClient.setQueryData<IJob[]>(['jobs'], old => {
         if (!old) return [];
         const movedItem = old.find(job => job.id === newOrder.jobId);
         if (!movedItem) return old;
-        
+
         const remainingItems = old.filter(job => job.id !== newOrder.jobId);
         const newJobs = [...remainingItems];
         newJobs.splice(newOrder.to, 0, movedItem);
-        
-        // Update order property for persistence
+
+        // Update order field for persistence
         return newJobs.map((job, index) => ({ ...job, order: index + 1 }));
       });
 
       return { previousJobs };
     },
-    onError: (err, newOrder, context) => {
+    onError: (_err, _newOrder, context) => {
       toast.error("Reorder failed, rolling back.");
-      // Rollback on failure
       if (context?.previousJobs) {
         queryClient.setQueryData(['jobs'], context.previousJobs);
       }
@@ -70,22 +69,26 @@ export function JobsList({ jobs }: { jobs: IJob[] }) {
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="jobs">
         {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+          <Box
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+          >
             {jobs?.map((job, index) => (
               <Draggable key={job.id} draggableId={String(job.id)} index={index}>
                 {(provided) => (
-                  <div
+                  <Box
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                   >
                     <JobCard job={job} />
-                  </div>
+                  </Box>
                 )}
               </Draggable>
             ))}
             {provided.placeholder}
-          </div>
+          </Box>
         )}
       </Droppable>
     </DragDropContext>

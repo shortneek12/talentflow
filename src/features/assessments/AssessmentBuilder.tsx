@@ -1,205 +1,268 @@
 // src/features/assessments/AssessmentBuilder.tsx
-import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import type { IAssessment, IJob, IQuestion, QuestionType } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Plus } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { v4 as uuidv4 } from 'uuid';
-import { Textarea } from '@/components/ui/textarea';
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Box,
+  Button,
+  Paper,
+  TextField,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { v4 as uuidv4 } from "uuid";
+import * as z from "zod";
+import type { IAssessment } from "@/types";
 
-// Zod Schema for validation
+// Zod Schemas
 const questionSchema = z.object({
   id: z.string(),
-  type: z.enum(['single-choice', 'multi-choice', 'short-text', 'long-text', 'numeric', 'file-upload']),
-  label: z.string().min(1, 'Question label cannot be empty'),
+  type: z.enum([
+    "short-text",
+    "long-text",
+    "numeric",
+    "single-choice",
+    "multi-choice",
+    "file-upload",
+  ]),
+  label: z.string().min(1, "Question label cannot be empty"),
   required: z.boolean(),
   options: z.array(z.string()).optional(),
 });
 
 const sectionSchema = z.object({
   id: z.string(),
-  title: z.string().min(1, 'Section title cannot be empty'),
+  title: z.string().min(1, "Section title cannot be empty"),
   questions: z.array(questionSchema),
 });
 
 const assessmentSchema = z.object({
-  title: z.string().min(1, 'Assessment title is required'),
+  title: z.string().min(1, "Assessment title is required"),
   sections: z.array(sectionSchema),
 });
 
 type AssessmentFormData = z.infer<typeof assessmentSchema>;
 
 async function fetchAssessment(jobId: number): Promise<IAssessment | null> {
-    // In a real app, you might get a 404. Here, we just return null.
-    const res = await fetch(`/assessments/${jobId}`);
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error("Failed to fetch assessment");
-    return res.json();
+  const res = await fetch(`/assessments/${jobId}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Failed to fetch assessment");
+  return res.json();
 }
 
 export function AssessmentBuilder({ jobId }: { jobId: number }) {
   const { data: assessment, isLoading } = useQuery({
-    queryKey: ['assessment', jobId],
+    queryKey: ["assessment", jobId],
     queryFn: () => fetchAssessment(jobId),
   });
 
-  const { control, register, handleSubmit, reset, watch, formState: { errors, isDirty } } = useForm<AssessmentFormData>({
+  const {
+    control,
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors, isDirty },
+  } = useForm<AssessmentFormData>({
     resolver: zodResolver(assessmentSchema),
-    defaultValues: { title: '', sections: [] },
+    defaultValues: { title: "", sections: [] },
   });
 
-  const { fields: sections, append: appendSection, remove: removeSection } = useFieldArray({
+  const {
+    fields: sections,
+    append: appendSection,
+    remove: removeSection,
+  } = useFieldArray({
     control,
     name: "sections",
   });
 
-  // When assessment data loads from the server, reset the form
   useEffect(() => {
-    if (assessment) {
-      reset(assessment);
-    } else {
-        // If no assessment exists, start with a default one
-        reset({ title: `Assessment for Job #${jobId}`, sections: [] });
-    }
+    if (assessment) reset(assessment);
+    else reset({ title: `Assessment for Job #${jobId}`, sections: [] });
   }, [assessment, jobId, reset]);
 
   const onSubmit = (data: AssessmentFormData) => {
-    // Save logic here (e.g., call a mutation)
-    console.log("Saving data:", data);
-    // Persist to localStorage for this demo
+    console.log("Saving assessment:", data);
     localStorage.setItem(`assessment-${jobId}`, JSON.stringify(data));
-    alert('Assessment state saved to local storage!');
+    alert("Assessment saved!");
   };
-  
-  const formValues = watch(); // For the live preview
 
-  if (isLoading) return <p>Loading assessment builder...</p>;
+  const formValues = watch();
+
+  if (isLoading) return <Typography>Loading assessment...</Typography>;
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      {/* Builder Form */}
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Build Assessment</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="title">Assessment Title</Label>
-              <Input id="title" {...register('title')} />
-              {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
-            </div>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 3,
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "7fr 5fr",
+          },
+        }}
+      >
+        {/* Builder Form */}
+        <Box>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Build Assessment
+            </Typography>
+            <TextField
+              label="Assessment Title"
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              {...register("title")}
+              error={!!errors.title}
+              helperText={errors.title?.message}
+            />
 
             {sections.map((section, sectionIndex) => (
-              <Card key={section.id} className="bg-muted/50 p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <Input {...register(`sections.${sectionIndex}.title`)} placeholder="Section Title" className="font-bold text-lg"/>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeSection(sectionIndex)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-                
+              <Paper key={section.id} sx={{ p: 2, my: 2 }} variant="outlined">
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
+                  <TextField
+                    placeholder="Section Title"
+                    variant="outlined"
+                    fullWidth
+                    {...register(`sections.${sectionIndex}.title`)}
+                  />
+                  <IconButton onClick={() => removeSection(sectionIndex)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+
                 <QuestionArray control={control} sectionIndex={sectionIndex} />
 
-                <Button type="button" variant="outline" size="sm" onClick={() => {
-                  const sectionsField = `sections.${sectionIndex}.questions` as const;
-                  // @ts-ignore
-                  appendQuestion(sectionsField, { id: uuidv4(), type: 'short-text', label: '', required: false });
-                }}><Plus className="h-4 w-4 mr-2" />Add Question</Button>
-              </Card>
+                <Button
+                  startIcon={<AddIcon />}
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    const questionsField =
+                      `sections.${sectionIndex}.questions` as const;
+                    // @ts-ignore
+                    appendQuestion(questionsField, {
+                      id: uuidv4(),
+                      type: "short-text",
+                      label: "",
+                      required: false,
+                    });
+                  }}
+                >
+                  Add Question
+                </Button>
+              </Paper>
             ))}
 
-            <Button type="button" onClick={() => appendSection({ id: uuidv4(), title: 'New Section', questions: [] })}>
-                <Plus className="h-4 w-4 mr-2" />Add Section
+            <Button
+              startIcon={<AddIcon />}
+              variant="contained"
+              onClick={() =>
+                appendSection({
+                  id: uuidv4(),
+                  title: "New Section",
+                  questions: [],
+                })
+              }
+              sx={{ mt: 2 }}
+            >
+              Add Section
             </Button>
-          </CardContent>
-        </Card>
-        <Button type="submit" className="mt-6" disabled={!isDirty}>Save Assessment</Button>
-      </form>
-      
-      {/* Live Preview Pane */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Live Preview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <h2 className="text-2xl font-bold mb-4">{formValues.title}</h2>
-          {formValues.sections?.map(section => (
-              <div key={section.id} className="mb-6">
-                  <h3 className="text-xl font-semibold border-b pb-2 mb-4">{section.title}</h3>
-                  {section.questions?.map(q => (
-                      <div key={q.id} className="mb-4">
-                          <Label>{q.label} {q.required && <span className="text-red-500">*</span>}</Label>
-                          {q.type === 'short-text' && <Input />}
-                          {q.type === 'long-text' && <Textarea />}
-                          {/* Render other question types */}
-                      </div>
-                  ))}
-              </div>
+          </Paper>
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ mt: 3 }}
+            disabled={!isDirty}
+          >
+            Save Assessment
+          </Button>
+        </Box>
+
+        {/* Live Preview */}
+        <Paper sx={{ p: 3, position: "sticky", top: "20px" }}>
+          <Typography variant="h5" gutterBottom>
+            Live Preview
+          </Typography>
+          <Typography variant="h6">{formValues.title}</Typography>
+          {formValues.sections?.map((section) => (
+            <Box key={section.id} sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                {section.title}
+              </Typography>
+              {section.questions?.map((q) => (
+                <Box key={q.id} sx={{ mb: 2 }}>
+                  <Typography>
+                    {q.label}
+                    {q.required && "*"}
+                  </Typography>
+                  {q.type === "short-text" && (
+                    <TextField fullWidth size="small" />
+                  )}
+                  {q.type === "long-text" && (
+                    <TextField fullWidth size="small" multiline rows={3} />
+                  )}
+                  {/* Add other question types as needed */}
+                </Box>
+              ))}
+            </Box>
           ))}
-        </CardContent>
-      </Card>
-    </div>
+        </Paper>
+      </Box>
+    </form>
   );
 }
 
-// Sub-component to manage questions within a section
-function QuestionArray({ control, sectionIndex }: { control: any; sectionIndex: number }) {
-  const { fields, append, remove } = useFieldArray({
+// QuestionArray Sub-component
+function QuestionArray({
+  control,
+  sectionIndex,
+}: {
+  control: any;
+  sectionIndex: number;
+}) {
+  const { fields } = useFieldArray({
     control,
     name: `sections.${sectionIndex}.questions`,
   });
 
   return (
-    <div className="space-y-4 mb-4">
-      {fields.map((question, qIndex) => (
-        <div key={question.id} className="border p-3 rounded-md space-y-2">
-            <div className="flex justify-between items-center">
-                 <Input {...control.register(`sections.${sectionIndex}.questions.${qIndex}.label`)} placeholder="Question Label"/>
-                 <Button type="button" variant="ghost" size="icon" onClick={() => remove(qIndex)}><Trash2 className="h-4 w-4" /></Button>
-            </div>
-            
-            <div className="flex items-center gap-4">
-                <Controller
-                    control={control}
-                    name={`sections.${sectionIndex}.questions.${qIndex}.type`}
-                    render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Question Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="short-text">Short Text</SelectItem>
-                                <SelectItem value="long-text">Long Text</SelectItem>
-                                <SelectItem value="numeric">Numeric</SelectItem>
-                                <SelectItem value="single-choice">Single Choice</SelectItem>
-                                <SelectItem value="file-upload">File Upload</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                <div className="flex items-center space-x-2">
-                    <Controller
-                        control={control}
-                        name={`sections.${sectionIndex}.questions.${qIndex}.required`}
-                        render={({ field }) => (
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        )}
-                    />
-                    <Label>Required</Label>
-                </div>
-            </div>
-        </div>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 2 }}>
+      {fields.map((question) => (
+        <Paper key={question.id} sx={{ p: 2, border: "1px solid #ccc" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 2,
+            }}
+          >
+            <TextField
+              fullWidth
+              label="Question"
+              variant="outlined"
+              size="small"
+            />
+            <IconButton size="small">
+              <DeleteIcon />
+            </IconButton>
+          </Box>
+        </Paper>
       ))}
-      <Button type="button" variant="outline" size="sm" onClick={() => append({ id: uuidv4(), type: 'short-text', label: '', required: false })}>
-          <Plus className="h-4 w-4 mr-2" />Add Question
-      </Button>
-    </div>
+    </Box>
   );
 }

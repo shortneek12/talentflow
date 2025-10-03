@@ -1,29 +1,48 @@
 // src/pages/Landing.tsx
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { Button, Typography, Box, Container } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Link } from 'react-router-dom';
 
 export function Landing() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-licorice text-wisteria p-8 text-center">
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo via-transparent to-licorice opacity-50"></div>
-      <div className="z-10">
-        <h1 className="text-6xl md:text-8xl font-bold mb-4 font-sans tracking-tight">
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: 'linear-gradient(45deg, #100311 30%, #580092 90%)',
+        color: '#cd9cec',
+        textAlign: 'center',
+        p: 3,
+      }}
+    >
+      <Container maxWidth="md">
+        <Typography variant="h1" component="h1" fontWeight="bold" gutterBottom>
           TalentFlow
-        </h1>
-        <p className="text-xl md:text-2xl text-wisteria mb-8 max-w-2xl mx-auto">
+        </Typography>
+        <Typography variant="h5" component="p" sx={{ mb: 4, maxWidth: '600px', margin: 'auto' }}>
           A streamlined, front-end-only hiring platform to manage jobs, candidates, and assessments with ease.
-        </p>
-        <Link to="/app"> {/* updated from /jobs to /app */}
-          <Button size="lg" className="bg-wisteria text-indigo hover:bg-wisteria/90 text-lg font-semibold px-8 py-6">
-            Get Started
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </Link>
-      </div>
-      <footer className="absolute bottom-4 text-wisteria/50">
-        Built with React, Vite, and Tailwind CSS.
-      </footer>
-    </div>
+        </Typography>
+        <Button
+          component={Link}
+          to="/app"
+          variant="contained"
+          size="large"
+          endIcon={<ArrowForwardIcon />}
+          sx={{
+            bgcolor: 'secondary.main',
+            color: 'primary.main',
+            '&:hover': { bgcolor: 'secondary.light' },
+            py: 1.5,
+            px: 4,
+            fontSize: '1.1rem'
+          }}
+        >
+          Get Started
+        </Button>
+      </Container>
+    </Box>
   );
 }

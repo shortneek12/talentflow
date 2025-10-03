@@ -1,22 +1,22 @@
 // src/components/layout/Header.tsx
-import { Button } from "@/components/ui/button";
-import { Sun, Moon } from "lucide-react";
-import { useTheme } from "@/hooks/useTheme";
+import { AppBar, Toolbar, IconButton, Box } from "@mui/material";
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useTheme } from '@mui/material/styles';
+import { useThemeMode } from "@/hooks/useThemeMode";
 
 export function Header() {
-  const { theme, setTheme } = useTheme();
+  const theme = useTheme();
+  const { toggleThemeMode } = useThemeMode();
 
   return (
-    <header className="flex items-center justify-end p-4 border-b">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      >
-        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
-      </Button>
-    </header>
+    <AppBar position="static" color="transparent" elevation={1}>
+      <Toolbar>
+        <Box sx={{ flexGrow: 1 }} />
+        <IconButton sx={{ ml: 1 }} onClick={toggleThemeMode} color="inherit">
+          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
+      </Toolbar>
+    </AppBar>
   );
 }

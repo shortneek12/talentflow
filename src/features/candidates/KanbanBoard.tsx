@@ -1,15 +1,16 @@
 // src/features/candidates/KanbanBoard.tsx
-import type { ICandidate } from '@/types';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { CandidateCard } from './CandidateCard'; // ✅ use custom card instead of inline Card
+import type { ICandidate } from "@/types";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Box, Paper, Typography } from "@mui/material";
+import { CandidateCard } from "./CandidateCard";
 
-const STAGES: ICandidate['stage'][] = [
-  'applied',
-  'screen',
-  'tech',
-  'offer',
-  'hired',
-  'rejected',
+const STAGES: ICandidate["stage"][] = [
+  "applied",
+  "screen",
+  "tech",
+  "offer",
+  "hired",
+  "rejected",
 ];
 
 export function KanbanBoard({ candidates }: { candidates: ICandidate[] }) {
@@ -17,49 +18,68 @@ export function KanbanBoard({ candidates }: { candidates: ICandidate[] }) {
   const columns = STAGES.reduce((acc, stage) => {
     acc[stage] = candidates.filter((c) => c.stage === stage);
     return acc;
-  }, {} as Record<ICandidate['stage'], ICandidate[]>);
+  }, {} as Record<ICandidate["stage"], ICandidate[]>);
 
   const onDragEnd = (result: any) => {
-    // Handle drag and drop logic to update candidate stage
+    // TODO: Implement drag and drop logic to update candidate stage
     console.log(result);
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-6 gap-4">
+      <Box
+        sx={{
+          display: "grid",
+          gap: 2,
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "repeat(3, 1fr)",
+            lg: "repeat(6, 1fr)",
+          },
+        }}
+      >
         {STAGES.map((stage) => (
-          <Droppable key={stage} droppableId={stage}>
-            {(provided) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className="bg-muted p-2 rounded-lg flex flex-col"
-              >
-                <h3 className="font-bold p-2 capitalize">{stage}</h3>
-                {columns[stage].map((candidate, index) => (
-                  <Draggable
-                    key={candidate.id}
-                    draggableId={String(candidate.id)}
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className="mb-2"
-                      >
-                        <CandidateCard candidate={candidate} />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          <Paper key={stage} sx={{ p: 1, bgcolor: "grey.100", height: "100%" }}>
+            <Typography variant="h6" sx={{ textTransform: "capitalize", p: 1 }}>
+              {stage}
+            </Typography>
+            <Droppable droppableId={stage}>
+              {(provided) => (
+                <Box
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  sx={{
+                    minHeight: "500px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1.5,
+                    pt: 1,
+                  }}
+                >
+                  {columns[stage].map((candidate, index) => (
+                    <Draggable
+                      key={candidate.id}
+                      draggableId={String(candidate.id)}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <Box
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <CandidateCard candidate={candidate} />
+                        </Box>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </Box>
+              )}
+            </Droppable>
+          </Paper>
         ))}
-      </div>
+      </Box>
     </DragDropContext>
   );
 }

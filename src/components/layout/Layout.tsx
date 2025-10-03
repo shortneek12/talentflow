@@ -1,18 +1,24 @@
 // src/components/layout/Layout.tsx
 import { Outlet } from "react-router-dom";
+import { Box } from "@mui/material";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 
+const DRAWER_WIDTH = 240;
+
 export function Layout() {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
+    <Box sx={{ display: 'flex' }}>
+      <Sidebar drawerWidth={DRAWER_WIDTH} />
+      <Box
+        component="main"
+        sx={{ flexGrow: 1, width: `calc(100% - ${DRAWER_WIDTH}px)` }}
+      >
         <Header />
-        <main className="flex-1 p-6">
+        <Box sx={{ p: 3 }}>
           <Outlet />
-        </main>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

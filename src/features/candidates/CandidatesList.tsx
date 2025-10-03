@@ -1,13 +1,27 @@
 // src/features/candidates/CandidatesList.tsx
 import type { ICandidate } from "@/types";
 import { useState, useMemo } from "react";
-import { AutoSizer, List } from "react-virtualized";
-import { Input } from "@/components/ui/input";
-import { useDebounce } from "@/hooks/useDebounce"; // ✅ added debounce hook
+import { useDebounce } from "@/hooks/useDebounce";
+
+// MUI Components
+import {
+  Box,
+  TextField,
+  Paper,
+  ListItem,
+  ListItemText,
+  Typography,
+  Chip,
+  InputAdornment,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+
+// Virtualization
+import { Virtuoso } from "react-virtuoso";
 
 export function CandidatesList({ candidates }: { candidates: ICandidate[] }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300); // ✅ debounce
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const filteredCandidates = useMemo(() => {
     if (!debouncedSearchTerm) return candidates;
@@ -16,49 +30,69 @@ export function CandidatesList({ candidates }: { candidates: ICandidate[] }) {
         c.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         c.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [candidates, debouncedSearchTerm]); // ✅ depend on debounced term
+  }, [candidates, debouncedSearchTerm]);
 
-  // Row renderer for the virtualized list
-  const renderRow = ({ index, key, style }: any) => {
+  const renderRow = (index: number) => {
     const candidate = filteredCandidates[index];
     return (
-      <div
-        key={key}
-        style={style}
-        className="flex items-center p-2 border-b"
-      >
-        <div className="flex-1 font-medium">{candidate.name}</div>
-        <div className="flex-1 text-muted-foreground">{candidate.email}</div>
-        <div className="flex-1 capitalize">{candidate.stage}</div>
-      </div>
+      <ListItem component="div" divider>
+        <ListItemText
+          primary={
+            <Typography component="span" fontWeight="medium">
+              {candidate.name}
+            </Typography>
+          }
+          sx={{ flex: "1 1 33%" }}
+        />
+        <ListItemText
+          primary={
+            <Typography component="span" color="text.secondary">
+              {candidate.email}
+            </Typography>
+          }
+          sx={{ flex: "1 1 33%" }}
+        />
+        <Box sx={{ flex: "1 1 33%", textAlign: "left" }}>
+          <Chip
+            label={candidate.stage}
+            size="small"
+            color="primary"
+            variant="outlined"
+            sx={{ textTransform: "capitalize" }}
+          />
+        </Box>
+      </ListItem>
     );
   };
 
   return (
-    <div className="flex flex-col h-[70vh]">
-      <Input
+    <Box sx={{ display: "flex", flexDirection: "column", height: "70vh" }}>
+      <TextField
         placeholder="Search by name or email..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4"
+        variant="outlined"
+        size="small"
+        sx={{ mb: 2 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        }}
       />
-      <div className="flex-grow">
-        <AutoSizer>
-          {({ height, width }) => (
-            <List
-              width={width}
-              height={height}
-              rowCount={filteredCandidates.length}
-              rowHeight={50}
-              rowRenderer={renderRow}
-            />
-          )}
-        </AutoSizer>
-      </div>
-    </div>
+      <Paper
+        sx={{ flexGrow: 1, width: "100%", height: "100%" }}
+        variant="outlined"
+      >
+        <Virtuoso
+          style={{ height: "100%" }}
+          totalCount={filteredCandidates.length}
+          itemContent={renderRow}
+          overscan={200}
+        />
+      </Paper>
+    </Box>
   );
 }
-
-// NOTE: react-virtualized has been largely replaced by libraries like react-window or tanstack-virtual.
-// For simplicity, I've kept react-virtualized here. 
-// You'll need: `npm install react-virtualized @types/react-virtualized`

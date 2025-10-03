@@ -1,20 +1,31 @@
 // src/pages/Dashboard.tsx
-import { useQuery } from '@tanstack/react-query';
-import type { ICandidate, IJob } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Briefcase, Users, CheckCircle, BarChart3 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { useQuery } from "@tanstack/react-query";
+import type { ICandidate, IJob } from "@/types";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+  Button,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { Link } from "react-router-dom";
 
-// We can reuse the existing fetching functions for efficiency
+
+// Fetch jobs + candidates together
 async function fetchAllData(): Promise<{ jobs: IJob[]; candidates: ICandidate[] }> {
   const [jobsRes, candidatesRes] = await Promise.all([
-    fetch('/jobs'),
-    fetch('/candidates'),
+    fetch("/jobs"),
+    fetch("/candidates"),
   ]);
 
   if (!jobsRes.ok || !candidatesRes.ok) {
-    throw new Error('Failed to fetch dashboard data');
+    throw new Error("Failed to fetch dashboard data");
   }
 
   return {
@@ -25,112 +36,122 @@ async function fetchAllData(): Promise<{ jobs: IJob[]; candidates: ICandidate[] 
 
 export function Dashboard() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ['dashboardData'],
+    queryKey: ["dashboardData"],
     queryFn: fetchAllData,
   });
 
   if (isLoading) {
-    return <div>Loading Dashboard...</div>;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
-    return <div className="text-destructive">Error loading dashboard data.</div>;
+    return <Alert severity="error">Error loading dashboard data.</Alert>;
   }
 
   const { jobs = [], candidates = [] } = data || {};
 
-  const activeJobs = jobs.filter(job => job.status === 'active').length;
-  const hiredCandidates = candidates.filter(candidate => candidate.stage === 'hired').length;
+  const activeJobs = jobs.filter((job) => job.status === "active").length;
+  const hiredCandidates = candidates.filter((c) => c.stage === "hired").length;
 
-  const candidateStageCounts = candidates.reduce((acc, candidate) => {
-    acc[candidate.stage] = (acc[candidate.stage] || 0) + 1;
+  const candidateStageCounts = candidates.reduce((acc, c) => {
+    acc[c.stage] = (acc[c.stage] || 0) + 1;
     return acc;
-  }, {} as Record<ICandidate['stage'], number>);
+  }, {} as Record<ICandidate["stage"], number>);
 
   const recentJobs = [...jobs].sort((a, b) => b.id - a.id).slice(0, 5);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      
+    <Box sx={{ padding: 3 }}>
+      <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+        Dashboard
+      </Typography>
+
       {/* High-level Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{jobs.length}</div>
-            <p className="text-xs text-muted-foreground">{activeJobs} active jobs</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{candidates.length}</div>
-            <p className="text-xs text-muted-foreground">Across all stages</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Hired</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+{hiredCandidates}</div>
-            <p className="text-xs text-muted-foreground">Successful placements</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3, mb: 4 }}>
+          <Card>
+            <CardHeader title="Total Jobs" />
+            <CardContent>
+              <Typography variant="h4" fontWeight="bold">{jobs.length}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {activeJobs} active jobs
+              </Typography>
+            </CardContent>
+          </Card>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* Candidate Pipeline Card */}
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Candidate Pipeline</CardTitle>
-            <CardDescription>A breakdown of candidates by their current stage.</CardDescription>
-          </CardHeader>
+          <Card>
+            <CardHeader title="Total Candidates" />
+            <CardContent>
+              <Typography variant="h4" fontWeight="bold">{candidates.length}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Across all stages
+              </Typography>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader title="Total Hired" />
+            <CardContent>
+              <Typography variant="h4" fontWeight="bold">{hiredCandidates}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Successful placements
+              </Typography>
+            </CardContent>
+          </Card>
+      </Box>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '7fr 5fr' }, gap: 3 }}>
+        {/* Candidate Pipeline */}
+        <Card>
+          <CardHeader title="Candidate Pipeline" subheader="Breakdown by stage" />
           <CardContent>
-            <ul className="space-y-2">
+            <List>
               {Object.entries(candidateStageCounts).map(([stage, count]) => (
-                <li key={stage} className="flex justify-between items-center text-sm">
-                  <span className="capitalize">{stage}</span>
-                  <span className="font-semibold">{count}</span>
-                </li>
+                <ListItem key={stage} divider>
+                  <ListItemText
+                    primaryTypographyProps={{ sx: { textTransform: "capitalize" } }}
+                    primary={stage}
+                    secondary={`Count: ${count}`}
+                  />
+                </ListItem>
               ))}
-            </ul>
+            </List>
           </CardContent>
         </Card>
 
-        {/* Recent Jobs Card */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Jobs</CardTitle>
-            <CardDescription>The last 5 jobs created.</CardDescription>
-          </CardHeader>
+        {/* Recent Jobs */}
+        <Card>
+          <CardHeader title="Recent Jobs" subheader="The last 5 jobs created" />
           <CardContent>
-            <ul className="space-y-4">
-              {recentJobs.map(job => (
-                <li key={job.id} className="flex items-center">
-                  <div className="flex-grow">
-                    <p className="font-medium">{job.title}</p>
-                    <p className={`text-xs ${job.status === 'active' ? 'text-green-500' : 'text-gray-500'}`}>
-                      Status: {job.status}
-                    </p>
-                  </div>
-                  <Link to={`/jobs/${job.id}`}>
-                    <Button variant="outline" size="sm">View</Button>
-                  </Link>
-                </li>
+            <List>
+              {recentJobs.map((job) => (
+                <ListItem
+                  key={job.id}
+                  divider
+                  secondaryAction={
+                    <Button
+                      component={Link}
+                      to={`/app/jobs/${job.id}`}
+                      variant="outlined"
+                      size="small"
+                    >
+                      View
+                    </Button>
+                  }
+                >
+                  <ListItemText
+                    primary={job.title}
+                    secondary={`Status: ${job.status}`}
+                  />
+                </ListItem>
               ))}
-            </ul>
+            </List>
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

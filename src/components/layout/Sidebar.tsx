@@ -1,71 +1,52 @@
 // src/components/layout/Sidebar.tsx
 import { NavLink } from "react-router-dom";
-import { Briefcase, Users, ClipboardList, LayoutDashboard } from "lucide-react"; // <-- Import LayoutDashboard icon
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import WorkIcon from '@mui/icons-material/Work';
+import PeopleIcon from '@mui/icons-material/People';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
-export function Sidebar() {
+const navItems = [
+  { text: 'Dashboard', path: '/app', icon: <DashboardIcon /> },
+  { text: 'Jobs', path: '/app/jobs', icon: <WorkIcon /> },
+  { text: 'Candidates', path: '/app/candidates', icon: <PeopleIcon /> },
+  { text: 'Assessments', path: '/app/assessments', icon: <AssessmentIcon /> },
+];
+
+export function Sidebar({ drawerWidth }: { drawerWidth: number }) {
   return (
-    <aside className="w-64 bg-card border-r">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-indigo">TalentFlow</h1>
-      </div>
-      <nav className="px-4">
-        <ul>
-          {/* Dashboard Link */}
-          <li>
-            <NavLink
-              to="/app"
-              end // Use 'end' to prevent it from matching child routes
-              className={({ isActive }) =>
-                `flex items-center p-2 rounded-md ${
-                  isActive ? "bg-accent text-accent-foreground" : ""
-                }`
-              }
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': { width: drawerWidth, boxSizing: 'border-box' },
+      }}
+    >
+      <Box sx={{ p: 2 }}>
+        <Typography variant="h5" component="h1" fontWeight="bold" color="primary">
+          TalentFlow
+        </Typography>
+      </Box>
+      <List>
+        {navItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              component={NavLink}
+              to={item.path}
+              end={item.path === '/app'}
+              sx={(theme) => ({
+                "&.active": {
+                  backgroundColor: theme.palette.action.selected,
+                }
+              })}
             >
-              <LayoutDashboard className="mr-3 h-5 w-5" />
-              Dashboard
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/app/jobs" // <-- Update paths to match nesting
-              className={({ isActive }) =>
-                `flex items-center p-2 rounded-md ${
-                  isActive ? "bg-accent text-accent-foreground" : ""
-                }`
-              }
-            >
-              <Briefcase className="mr-3 h-5 w-5" />
-              Jobs
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/app/candidates" // <-- Update paths to match nesting
-              className={({ isActive }) =>
-                `flex items-center p-2 rounded-md ${
-                  isActive ? "bg-accent text-accent-foreground" : ""
-                }`
-              }
-            >
-              <Users className="mr-3 h-5 w-5" />
-              Candidates
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/app/assessments" // <-- Update paths to match nesting
-              className={({ isActive }) =>
-                `flex items-center p-2 rounded-md ${
-                  isActive ? "bg-accent text-accent-foreground" : ""
-                }`
-              }
-            >
-              <ClipboardList className="mr-3 h-5 w-5" />
-              Assessments
-            </NavLink>
-          </li>
-        </ul>
-      </nav>
-    </aside>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Drawer>
   );
 }
