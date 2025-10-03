@@ -1,18 +1,6 @@
 // src/api/handlers.ts
 
-import { http, HttpResponse } from 'msw'
-
-// Define all your mock API routes in this array.
-// The "export" keyword makes it available for your mock.ts file to import.
-export const handlers = [
-  // Example: Intercepts GET requests to "/user"
-  http.get('/user', () => {
-    // Respond with a mock JSON object
-    return HttpResponse.json({
-      firstName: 'John',
-      lastName: 'Maverick',
-    })
-  }),
-
-  // ...add all your other handlers here
-]
+// This project uses MirageJS for API mocking (see `src/api/server.ts`).
+// `handlers.ts` previously contained MSW handlers; since MSW isn't used,
+// export an empty handlers array so imports (if any) won't break.
+export const handlers: any[] = []

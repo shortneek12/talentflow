@@ -9,7 +9,7 @@ import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import type { ICandidate } from '@/types';
 
 async function fetchCandidates(): Promise<ICandidate[]> {
-  const response = await fetch('/candidates');
+  const response = await fetch('/api/candidates');
   if (!response.ok) {
     throw new Error('Failed to fetch candidates');
   }

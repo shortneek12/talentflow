@@ -31,7 +31,7 @@ import type { ICandidate, ITimelineEvent } from "@/types";
 // ---------------- Fetching Functions ----------------
 
 async function fetchCandidate(candidateId: string): Promise<ICandidate> {
-  const res = await fetch("/candidates");
+  const res = await fetch("/api/candidates");
   if (!res.ok) throw new Error("Failed to fetch candidates");
   const candidates: ICandidate[] = await res.json();
   const candidate = candidates.find((c) => c.id === Number(candidateId));
@@ -42,7 +42,7 @@ async function fetchCandidate(candidateId: string): Promise<ICandidate> {
 async function fetchTimeline(
   candidateId: string
 ): Promise<ITimelineEvent[]> {
-  const res = await fetch(`/candidates/${candidateId}/timeline`);
+  const res = await fetch(`/api/candidates/${candidateId}/timeline`);
   if (!res.ok) throw new Error("Failed to fetch timeline");
   return res.json();
 }
@@ -51,7 +51,7 @@ async function addNoteToTimeline(newNote: {
   candidateId: number;
   content: string;
 }): Promise<ITimelineEvent> {
-  const response = await fetch(`/candidates/${newNote.candidateId}/timeline`, {
+  const response = await fetch(`/api/candidates/${newNote.candidateId}/timeline`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newNote),

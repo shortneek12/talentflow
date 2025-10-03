@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Box } from "@mui/material";
 
 async function reorderJobsAPI(variables: { jobId: number; from: number; to: number }) {
-  const response = await fetch(`/jobs/${variables.jobId}/reorder`, {
+  const response = await fetch(`/api/jobs/${variables.jobId}/reorder`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fromOrder: variables.from, toOrder: variables.to }),

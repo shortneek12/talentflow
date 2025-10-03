@@ -8,7 +8,7 @@ import AddIcon from '@mui/icons-material/Add';
 import type { IJob } from '@/types';
 
 async function fetchJobs(): Promise<IJob[]> {
-  const res = await fetch("/jobs");
+  const res = await fetch("/api/jobs");
   if (!res.ok) throw new Error("Failed to fetch jobs");
   return res.json();
 }

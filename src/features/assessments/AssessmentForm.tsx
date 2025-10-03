@@ -24,7 +24,7 @@ import { toast } from "sonner";
 
 // API function to fetch the assessment structure
 async function fetchAssessment(jobId: number): Promise<IAssessment> {
-  const res = await fetch(`/assessments/${jobId}`);
+  const res = await fetch(`/api/assessments/${jobId}`);
   if (!res.ok) throw new Error("Failed to load the assessment.");
   return res.json();
 }
@@ -58,7 +58,7 @@ export function AssessmentForm({ jobId }: { jobId: number }) {
     control,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: {},
   } = useForm();
 
   const formValues = watch(); // For conditional logic
@@ -97,149 +97,156 @@ export function AssessmentForm({ jobId }: { jobId: number }) {
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {section.questions.filter(q => {
-                  // Conditional logic for visibility
-                  return !(q.label.includes("Explain") && formValues[q.id] !== "Yes");
-                }).map((q) => {
+                {section.questions
+                  .filter((q) => {
+                    // Conditional logic for visibility
+                    return !(
+                      q.label.includes("Explain") && formValues[q.id] !== "Yes"
+                    );
+                  })
+                  .map((q) => {
+                    return (
+                      <Controller
+                        key={q.id}
+                        name={q.id}
+                        control={control}
+                        rules={{
+                          required: q.required
+                            ? "This field is required"
+                            : false,
+                          // Other validation rules...
+                        }}
+                        render={({ field, fieldState }) => {
+                          const hasError = !!fieldState.error;
+                          const helperText = fieldState.error?.message;
 
-                  return (
-                    <Controller
-                      key={q.id}
-                      name={q.id}
-                      control={control}
-                      rules={{
-                        required: q.required ? "This field is required" : false,
-                        // Other validation rules...
-                      }}
-                      render={({ field, fieldState }) => {
-                        const hasError = !!fieldState.error;
-                        const helperText = fieldState.error?.message;
+                          // Default TextField as fallback
+                          const defaultField = (
+                            <TextField
+                              {...field}
+                              label={q.label}
+                              fullWidth
+                              error={hasError}
+                              helperText={
+                                helperText || "Unsupported question type"
+                              }
+                              disabled
+                            />
+                          );
 
-                        // Default TextField as fallback
-                        const defaultField = (
-                          <TextField
-                            {...field}
-                            label={q.label}
-                            fullWidth
-                            error={hasError}
-                            helperText={helperText || "Unsupported question type"}
-                            disabled
-                          />
-                        );
-
-                        switch (q.type) {
-                          case "short-text":
-                            return (
-                              <TextField
-                                {...field}
-                                label={q.label}
-                                fullWidth
-                                error={hasError}
-                                helperText={helperText}
-                              />
-                            );
-                          case "long-text":
-                            return (
-                              <TextField
-                                {...field}
-                                label={q.label}
-                                multiline
-                                rows={4}
-                                fullWidth
-                                error={hasError}
-                                helperText={helperText}
-                              />
-                            );
-                          case "numeric":
-                            return (
-                              <TextField
-                                {...field}
-                                label={q.label}
-                                type="number"
-                                fullWidth
-                                error={hasError}
-                                helperText={helperText}
-                              />
-                            );
-                          case "single-choice":
-                            return (
-                              <FormControl
-                                component="fieldset"
-                                error={hasError}
-                              >
-                                <FormLabel component="legend">
-                                  {q.label}
-                                </FormLabel>
-                                <RadioGroup {...field}>
-                                  {q.options?.map((option) => (
-                                    <FormControlLabel
-                                      key={option}
-                                      value={option}
-                                      control={<Radio />}
-                                      label={option}
-                                    />
-                                  ))}
-                                </RadioGroup>
-                                <FormHelperText>{helperText}</FormHelperText>
-                              </FormControl>
-                            );
-                          case "multi-choice":
-                            return (
-                              <FormControl
-                                component="fieldset"
-                                error={hasError}
-                              >
-                                <FormLabel component="legend">
-                                  {q.label}
-                                </FormLabel>
-                                <FormGroup>
-                                  {q.options?.map((option) => (
-                                    <FormControlLabel
-                                      key={option}
-                                      control={
-                                        <Checkbox
-                                          checked={
-                                            field.value?.includes(option) ||
-                                            false
-                                          }
-                                          onChange={(e) => {
-                                            const currentValues =
-                                              field.value || [];
-                                            const newValues = e.target.checked
-                                              ? [...currentValues, option]
-                                              : currentValues.filter(
-                                                  (val: string) =>
-                                                    val !== option
-                                                );
-                                            field.onChange(newValues);
-                                          }}
-                                        />
-                                      }
-                                      label={option}
-                                    />
-                                  ))}
-                                </FormGroup>
-                                <FormHelperText>{helperText}</FormHelperText>
-                              </FormControl>
-                            );
-                          case "file-upload":
-                            return (
-                              <TextField
-                                label={q.label}
-                                type="file"
-                                fullWidth
-                                disabled
-                                InputLabelProps={{ shrink: true }}
-                                helperText="File uploads are currently disabled."
-                              />
-                            );
-                          default:
-                            return defaultField;
-                        }
-                      }}
-                    />
-                  );
-                })}
+                          switch (q.type) {
+                            case "short-text":
+                              return (
+                                <TextField
+                                  {...field}
+                                  label={q.label}
+                                  fullWidth
+                                  error={hasError}
+                                  helperText={helperText}
+                                />
+                              );
+                            case "long-text":
+                              return (
+                                <TextField
+                                  {...field}
+                                  label={q.label}
+                                  multiline
+                                  rows={4}
+                                  fullWidth
+                                  error={hasError}
+                                  helperText={helperText}
+                                />
+                              );
+                            case "numeric":
+                              return (
+                                <TextField
+                                  {...field}
+                                  label={q.label}
+                                  type="number"
+                                  fullWidth
+                                  error={hasError}
+                                  helperText={helperText}
+                                />
+                              );
+                            case "single-choice":
+                              return (
+                                <FormControl
+                                  component="fieldset"
+                                  error={hasError}
+                                >
+                                  <FormLabel component="legend">
+                                    {q.label}
+                                  </FormLabel>
+                                  <RadioGroup {...field}>
+                                    {q.options?.map((option) => (
+                                      <FormControlLabel
+                                        key={option}
+                                        value={option}
+                                        control={<Radio />}
+                                        label={option}
+                                      />
+                                    ))}
+                                  </RadioGroup>
+                                  <FormHelperText>{helperText}</FormHelperText>
+                                </FormControl>
+                              );
+                            case "multi-choice":
+                              return (
+                                <FormControl
+                                  component="fieldset"
+                                  error={hasError}
+                                >
+                                  <FormLabel component="legend">
+                                    {q.label}
+                                  </FormLabel>
+                                  <FormGroup>
+                                    {q.options?.map((option) => (
+                                      <FormControlLabel
+                                        key={option}
+                                        control={
+                                          <Checkbox
+                                            checked={
+                                              field.value?.includes(option) ||
+                                              false
+                                            }
+                                            onChange={(e) => {
+                                              const currentValues =
+                                                field.value || [];
+                                              const newValues = e.target.checked
+                                                ? [...currentValues, option]
+                                                : currentValues.filter(
+                                                    (val: string) =>
+                                                      val !== option
+                                                  );
+                                              field.onChange(newValues);
+                                            }}
+                                          />
+                                        }
+                                        label={option}
+                                      />
+                                    ))}
+                                  </FormGroup>
+                                  <FormHelperText>{helperText}</FormHelperText>
+                                </FormControl>
+                              );
+                            case "file-upload":
+                              return (
+                                <TextField
+                                  label={q.label}
+                                  type="file"
+                                  fullWidth
+                                  disabled
+                                  InputLabelProps={{ shrink: true }}
+                                  helperText="File uploads are currently disabled."
+                                />
+                              );
+                            default:
+                              return defaultField;
+                          }
+                        }}
+                      />
+                    );
+                  })}
               </Box>
             </Box>
           ))}

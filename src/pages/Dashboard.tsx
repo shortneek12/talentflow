@@ -20,8 +20,8 @@ import { Link } from "react-router-dom";
 // Fetch jobs + candidates together
 async function fetchAllData(): Promise<{ jobs: IJob[]; candidates: ICandidate[] }> {
   const [jobsRes, candidatesRes] = await Promise.all([
-    fetch("/jobs"),
-    fetch("/candidates"),
+    fetch("/api/jobs"),
+    fetch("/api/candidates"),
   ]);
 
   if (!jobsRes.ok || !candidatesRes.ok) {

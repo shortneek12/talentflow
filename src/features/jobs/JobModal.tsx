@@ -27,7 +27,7 @@ type JobFormData = z.infer<typeof jobSchema>;
 
 // Async function to create a new job via API call
 async function createJob(newJob: { title: string; slug: string; tags: string[]; status: string; }) {
-    const response = await fetch('/jobs', {
+    const response = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newJob),

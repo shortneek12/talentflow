@@ -47,7 +47,7 @@ const assessmentSchema = z.object({
 type AssessmentFormData = z.infer<typeof assessmentSchema>;
 
 async function fetchAssessment(jobId: number): Promise<IAssessment | null> {
-  const res = await fetch(`/assessments/${jobId}`);
+  const res = await fetch(`/api/assessments/${jobId}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to fetch assessment");
   return res.json();
