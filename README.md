@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# TalentFlow - A Mini Hiring Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TalentFlow is a front-end-only React application designed as a technical assignment. It simulates a real-world hiring platform where an HR team can manage jobs, candidates, and assessments.
 
-Currently, two official plugins are available:
+**Note:** This application is entirely client-side. It uses Mock Service Worker (MSW) to simulate a REST API and IndexedDB (via Dexie.js) for local data persistence.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+*   **Jobs Board:** Create, edit, archive, and reorder jobs with drag-and-drop. Features optimistic updates for a smooth UX.
+*   **Candidate Management:** View a virtualized list of 1000+ candidates, with client-side search and a Kanban board to move candidates through hiring stages.
+*   **Assessment Builder:** A dynamic form builder to create job-specific quizzes with various question types (text, multiple-choice, etc.) and a live preview.
+*   **Local Persistence:** All data is stored locally in your browser's IndexedDB, persisting across page refreshes.
+*   **Simulated API:** MSW intercepts network requests to provide a realistic API experience, complete with artificial latency and random error rates.
+*   **Modern UI:** Built with shadcn/ui, Tailwind CSS, and a custom color scheme with light/dark modes.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Tech Stack
 
-## Expanding the ESLint configuration
+*   **Framework:** React 18 + Vite
+*   **Language:** TypeScript
+*   **Styling:** Tailwind CSS + shadcn/ui
+*   **State Management:**
+    *   **Server State:** TanStack Query (React Query) for caching, optimistic updates, etc.
+    *   **Client State:** Zustand (for simple global state if needed)
+*   **Routing:** React Router DOM
+*   **API Mocking:** Mock Service Worker (MSW)
+*   **Local Database:** Dexie.js (a wrapper for IndexedDB)
+*   **Drag & Drop:** @hello-pangea/dnd
+*   **Forms:** React Hook Form + Zod for validation
+*   **Virtualized Lists:** React Virtualized
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ⚙️ Setup and Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repo-url>
+    cd talentflow
+    ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+    The application will be available at `http://localhost:5173`.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🏛️ Architecture and Technical Decisions
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+*   **Vite:** Chosen for its extremely fast development server and optimized build process.
+*   **TypeScript:** Provides type safety, which is crucial for a data-intensive application with complex state like this one.
+*   **TanStack Query:** The perfect tool for managing "server state." It handles caching, refetching, and makes complex patterns like optimistic updates for the job reordering feature straightforward and declarative.
+*   **MSW + Dexie:** This combination is the core of the "no backend" requirement. MSW acts as the network layer, while Dexie provides a robust and easy-to-use interface for IndexedDB, ensuring data persists. This decouples the UI from the data storage, making the code cleaner and more realistic.
+*   **shadcn/ui:** A component library that provides unstyled, accessible components. This allows for full control over styling with Tailwind CSS while saving time on building complex components like modals and dialogs from scratch.
+*   **`@hello-pangea/dnd`:** A well-maintained and accessible library for drag-and-drop, chosen for its simple API and compatibility with React 18.
+*   **React Virtualized:** Essential for performance when rendering the list of 1,000+ candidates. It ensures that only the visible items are rendered to the DOM, preventing the app from slowing down.
